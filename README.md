@@ -1,4 +1,4 @@
-# 🚀 FirstStep AI
+# 🚀 FirstStepAI
 
 An AI-powered career development platform designed to help students prepare for internships and placements.
 
