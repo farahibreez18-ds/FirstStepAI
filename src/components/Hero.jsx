@@ -1,34 +1,31 @@
+import { Link } from "react-router-dom";
+
 function Hero() {
   return (
-    <section className="flex flex-col items-center justify-center text-center px-6 py-28">
-
-      <div className="bg-blue-600/20 border border-blue-500 text-blue-400 px-5 py-2 rounded-full mb-8">
-        🚀 AI Powered Career Platform
-      </div>
-
-      <h1 className="text-6xl md:text-7xl font-extrabold leading-tight max-w-5xl">
-        Build Your Dream Career
-        <span className="text-blue-500"> with AI</span>
+    <section className="max-w-5xl mx-auto px-6 py-24 text-center">
+      <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+        FirstStep AI
       </h1>
 
-      <p className="text-slate-400 text-xl mt-8 max-w-3xl leading-relaxed">
-        Create ATS-friendly resumes, prepare for interviews,
-        chat with AI mentors, discover career paths and land
-        your dream job faster.
+      <p className="mt-4 text-lg text-slate-400">
+        Your AI-powered career companion — resumes, interviews, and skills, all in one place.
       </p>
 
-      <div className="flex gap-6 mt-12">
+      <div className="mt-10 flex justify-center gap-4">
+        <Link
+          to="/login"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition"
+        >
+          Sign In
+        </Link>
 
-        <button className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl text-lg font-semibold transition">
-          Check Resume
-        </button>
-
-        <button className="border border-slate-700 hover:border-blue-500 hover:text-blue-400 px-8 py-4 rounded-xl text-lg transition">
-          Chat with AI
-        </button>
-
+        <Link
+          to="/signup"
+          className="border border-slate-700 hover:border-blue-500 text-slate-200 font-semibold px-8 py-3 rounded-lg transition"
+        >
+          Create Account
+        </Link>
       </div>
-
     </section>
   );
 }
