@@ -1,68 +1,39 @@
-# 🚀 FirstStepAI
+# 🚀 FirstStep AI
 
-An AI-powered career development platform that helps students and job seekers improve their resumes, prepare for interviews, and build skills.
-
----
+An AI-powered career development platform designed to help students prepare for internships and placements.
 
 ## ✨ Features
 
-- 📄 Resume Analyzer
+- 📄 Resume Analyzer with ATS Score
 - 🤖 AI Career Coach
-- 🎤 Mock Interview
-- 📈 Skill Roadmap
-- 💼 Job Tracker
+- 🎤 Mock Interview Preparation
+- 🛣️ Skill Roadmap Generator
+- 💼 Job Application Tracker
 - 📚 Learning Hub
-- 📊 Career Dashboard
-
----
 
 ## 🛠️ Tech Stack
 
 - React.js
 - Vite
 - Tailwind CSS
-- React Router
 - JavaScript
-- HTML5
-- CSS3
+- React Router
+- Lucide React
 
----
+## 📸 Project Preview
 
-## 📸 Screenshots
+*(Screenshots will be added soon.)*
 
-> Screenshots will be added soon.
+## 📂 Project Status
 
----
-
-## 🚀 Installation
-
-```bash
-git clone https://github.com/farahibreez18-ds/FirstStepAI.git
-
-cd FirstStepAI
-
-npm install
-
-npm run dev
-```
-
----
-
-## 🎯 Future Enhancements
-
-- AI-powered Resume Analysis
-- AI Career Chatbot
-- PDF Report Generation
-- Resume Builder
-- Internship Recommendations
-- Authentication System
-
----
+🚧 Currently under active development.
 
 ## 👩‍💻 Developer
 
 **Farah Ibreez**
 
-B.E. Computer Science & Engineering (Data Science)
+GitHub: https://github.com/farahibreez18-ds
 
-Dayananda Sagar Academy of Technology and Management
+---
+
+⭐ If you like this project, don't forget to star the repository!
