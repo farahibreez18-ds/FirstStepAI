@@ -11,12 +11,6 @@ const secondary = [
   { title: "Mock Interview", desc: "Practice a new session", icon: Mic, path: "/interview", accent: "#F2B84B" },
 ];
 
-const activity = [
-  { text: "Uploaded resume for analysis", time: "2h ago" },
-  { text: "Added application — Stripe, Frontend Engineer", time: "1d ago" },
-  { text: "Completed a mock interview session", time: "3d ago" },
-  { text: "Created account", time: "5d ago" },
-];
 
 const jobStats = [
   { label: "Applied", value: 8, color: "#4C6FFF" },
@@ -26,8 +20,8 @@ const jobStats = [
 const maxJob = Math.max(...jobStats.map((j) => j.value));
 
 const profileSteps = [
-  { label: "Resume uploaded", done: true },
-  { label: "First mock interview", done: true },
+  { label: "Resume uploaded", done: false },
+  { label: "First mock interview", done: false },
   { label: "Cover letter generated", done: false },
   { label: "3+ applications tracked", done: false },
 ];
@@ -49,10 +43,7 @@ function Dashboard() {
     { label: "Applications", value: String(jobCount) },
   ];
 
-  const radius = 30;
-  const circumference = 2 * Math.PI * radius;
-  const score = 0.87;
-
+  
   const profileDone = profileSteps.filter((s) => s.done).length;
   const profilePct = Math.round((profileDone / profileSteps.length) * 100);
 
@@ -124,24 +115,12 @@ function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-stretch">
 
+              
               <div className="bg-[#121A2E] border border-[#232D42] rounded-xl p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-data text-[#8A93A6] tracking-wide">RESUME SCORE</span>
-                  <svg width="44" height="44" viewBox="0 0 72 72" className="shrink-0">
-                    <circle cx="36" cy="36" r={radius} fill="none" stroke="#232D42" strokeWidth="7" />
-                    <circle
-                      cx="36" cy="36" r={radius} fill="none"
-                      stroke="#4C6FFF" strokeWidth="7"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={circumference * (1 - score)}
-                      strokeLinecap="round"
-                      transform="rotate(-90 36 36)"
-                    />
-                  </svg>
-                </div>
+                <span className="text-[10px] font-data text-[#8A93A6] tracking-wide">RESUME SCORE</span>
                 <div className="mt-4">
-                  <div className="font-display font-bold text-2xl text-[#F5F7FA]">87<span className="text-sm text-[#8A93A6]">/100</span></div>
-                  <p className="text-xs text-[#8A93A6] mt-1">Strong match</p>
+                  <div className="font-display font-bold text-lg text-[#8A93A6]">Not analyzed yet</div>
+                  <p className="text-xs text-[#8A93A6] mt-1">Upload your resume to get a score</p>
                 </div>
               </div>
 
@@ -206,21 +185,27 @@ function Dashboard() {
 
           <div className="flex flex-col gap-5">
 
-            <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
+           <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
               <h3 className="font-display font-semibold text-[#F5F7FA] mb-5">Recent Activity</h3>
-              <div className="space-y-5">
-                {activity.map((a, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#4C6FFF] mt-1.5 shrink-0"></div>
-                    <div>
-                      <p className="text-sm text-[#F5F7FA] leading-snug">{a.text}</p>
-                      <span className="flex items-center gap-1 text-xs text-[#8A93A6] mt-1">
-                        <Clock className="w-3 h-3" /> {a.time}
-                      </span>
-                    </div>
+              {jobCount > 0 ? (
+                <div className="flex gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#4C6FFF] mt-1.5 shrink-0"></div>
+                  <div>
+                    <p className="text-sm text-[#F5F7FA] leading-snug">
+                      Tracking {jobCount} job application{jobCount === 1 ? "" : "s"}
+                    </p>
+                    <span className="flex items-center gap-1 text-xs text-[#8A93A6] mt-1">
+                      <Clock className="w-3 h-3" /> Just now
+                    </span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-[#8A93A6]">
+                    Nothing here yet — start by analyzing your resume or tracking an application.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
