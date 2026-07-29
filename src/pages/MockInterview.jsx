@@ -32,29 +32,42 @@ function MockInterview() {
     setMessages([{ role: "ai", text: QUESTIONS[0] }]);
   };
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+ const [sending, setSending] = useState(false);
+
+const handleSend = async () => {
+    if (!input.trim() || sending) return;
     const question = QUESTIONS[qIndex];
-    const analysis = analyzeAnswer(question, input);
+    const userAnswer = input;
     const nextIndex = qIndex + 1;
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: input },
-      { role: "ai", text: analysis.feedback, tone: analysis.tone },
-    ]);
-    setAnalyses((prev) => [...prev, analysis]);
+    setMessages((prev) => [...prev, { role: "user", text: userAnswer }]);
     setInput("");
+    setSending(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/interview-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, answer: userAnswer }),
+      });
+      const data = await res.json();
+      const feedbackText = data.feedback || "Thanks for your answer — let's move to the next question.";
+
+      setMessages((prev) => [...prev, { role: "ai", text: feedbackText }]);
+      setAnalyses((prev) => [...prev, { wordCount: userAnswer.split(/\s+/).length }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, { role: "ai", text: "Couldn't get AI feedback right now — moving to the next question." }]);
+    } finally {
+      setSending(false);
       if (nextIndex < QUESTIONS.length) {
         setMessages((prev) => [...prev, { role: "ai", text: QUESTIONS[nextIndex] }]);
         setQIndex(nextIndex);
       } else {
         setFinished(true);
       }
-    }, 700);
+    }
   };
+
 
   const summary = finished ? summarizeSession(analyses) : null;
 
