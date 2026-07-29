@@ -1,0 +1,9 @@
+[33mcommit 3353dcd96f3c7f87fce1ec2bed99efb0f19abdbc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Farah Ibreez <farah.ibreez18@gmail.com>
+Date:   Wed Jul 29 19:23:02 2026 +0530
+
+    Add AI-powered interview feedback
+
+ FirstStepAI/api/interview-feedback.js | 44 [32m+++++++++++++++++++++++++++++++++++[m
+ src/pages/MockInterview.jsx           | 35 [32m+++++++++++++++++++[m[31m---------[m
+ 2 files changed, 68 insertions(+), 11 deletions(-)
