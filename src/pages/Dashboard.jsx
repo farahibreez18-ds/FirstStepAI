@@ -1,16 +1,15 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { FileText, Mail, Mic, Briefcase, ArrowUpRight, Clock, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
+import { FileText, Mail, Mic, Briefcase, ArrowUpRight, Clock, Sparkles } from "lucide-react";
 
 const secondary = [
   { title: "Cover Letter", desc: "Generate a tailored draft", icon: Mail, path: "/cover-letter", accent: "#8B7CF6" },
   { title: "Mock Interview", desc: "Practice a new session", icon: Mic, path: "/interview", accent: "#F2B84B" },
 ];
-
 
 const jobStats = [
   { label: "Applied", value: 8, color: "#4C6FFF" },
@@ -31,6 +30,8 @@ function Dashboard() {
   const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email?.split("@")[0] || "there";
 
   const [jobCount, setJobCount] = useState(0);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [resumeScore, setResumeScore] = useState(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -39,11 +40,29 @@ function Dashboard() {
     return () => unsubscribe();
   }, [currentUser]);
 
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = query(collection(db, "activity"), where("userId", "==", currentUser.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      setRecentActivity(items.slice(0, 4));
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsubscribe = onSnapshot(doc(db, "resumeScores", currentUser.uid), (snap) => {
+      if (snap.exists()) setResumeScore(snap.data());
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+
   const quickStats = [
     { label: "Applications", value: String(jobCount) },
   ];
 
-  
   const profileDone = profileSteps.filter((s) => s.done).length;
   const profilePct = Math.round((profileDone / profileSteps.length) * 100);
 
@@ -115,13 +134,21 @@ function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-stretch">
 
-              
               <div className="bg-[#121A2E] border border-[#232D42] rounded-xl p-6 flex flex-col justify-between">
                 <span className="text-[10px] font-data text-[#8A93A6] tracking-wide">RESUME SCORE</span>
-                <div className="mt-4">
-                  <div className="font-display font-bold text-lg text-[#8A93A6]">Not analyzed yet</div>
-                  <p className="text-xs text-[#8A93A6] mt-1">Upload your resume to get a score</p>
-                </div>
+                {resumeScore ? (
+                  <div className="mt-4">
+                    <div className="font-display font-bold text-2xl text-[#F5F7FA]">
+                      {resumeScore.score}<span className="text-sm text-[#8A93A6]">/100</span>
+                    </div>
+                    <p className="text-xs text-[#8A93A6] mt-1">{resumeScore.verdict}</p>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <div className="font-display font-bold text-lg text-[#8A93A6]">Not analyzed yet</div>
+                    <p className="text-xs text-[#8A93A6] mt-1">Upload your resume to get a score</p>
+                  </div>
+                )}
               </div>
 
               {secondary.map((f) => {
@@ -185,19 +212,21 @@ function Dashboard() {
 
           <div className="flex flex-col gap-5">
 
-           <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
+            <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
               <h3 className="font-display font-semibold text-[#F5F7FA] mb-5">Recent Activity</h3>
-              {jobCount > 0 ? (
-                <div className="flex gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#4C6FFF] mt-1.5 shrink-0"></div>
-                  <div>
-                    <p className="text-sm text-[#F5F7FA] leading-snug">
-                      Tracking {jobCount} job application{jobCount === 1 ? "" : "s"}
-                    </p>
-                    <span className="flex items-center gap-1 text-xs text-[#8A93A6] mt-1">
-                      <Clock className="w-3 h-3" /> Just now
-                    </span>
-                  </div>
+              {recentActivity.length > 0 ? (
+                <div className="space-y-5">
+                  {recentActivity.map((a) => (
+                    <div key={a.id} className="flex gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#4C6FFF] mt-1.5 shrink-0"></div>
+                      <div>
+                        <p className="text-sm text-[#F5F7FA] leading-snug">{a.text}</p>
+                        <span className="flex items-center gap-1 text-xs text-[#8A93A6] mt-1">
+                          <Clock className="w-3 h-3" /> Recently
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-6">
