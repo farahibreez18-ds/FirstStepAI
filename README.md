@@ -12,6 +12,28 @@
 - 💼 **Job Tracker** — Track applications (company, role, status) with real-time sync via Firestore.
 - 📊 **Dashboard** — A live overview of your activity, resume score, and application progress.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend:** React (Vite), Tailwind CSS, React Router
+- **Auth & Database:** Firebase Authentication, Firestore
+- **AI:** Google Gemini API, via serverless functions
+- **Hosting:** Vercel (frontend + serverless API routes)
+- **File parsing:** pdfjs-dist, mammoth (PDF/DOCX text extraction)
+- **Document generation:** jsPDF, docx
+
+## How it works
+
+The frontend is a React SPA hosted on Vercel. AI features (resume analysis, cover letter, interview feedback) call serverless functions in `/api`, which securely hold the Gemini API key server-side and forward requests to Google's Gemini API. User data (job applications, activity history, resume scores) is stored in Firestore, scoped per-user via Firebase Auth and enforced with Firestore security rules.
+
+## Getting started locally
+
+```bash
+npm install
+npm run dev
+```
+
+You'll need a `.env` file with your own Firebase config, and a `GEMINI_API_KEY` environment variable set in Vercel (or locally via `vercel dev`) for AI features to work.
+
+## Author
+
+Built by Farah Ibreez Zameer.
