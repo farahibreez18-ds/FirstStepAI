@@ -39,7 +39,7 @@ function ResumeAnalyzer() {
 
       const data = await res.json();
       if (data.error) {
-        throw new Error("The AI couldn't analyze this resume right now. Please try again.");
+        throw new Error(data.error);
       }
 
       setResult(data);

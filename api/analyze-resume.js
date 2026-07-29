@@ -65,6 +65,10 @@ Be honest and specific — reference actual content from the resume in your feed
       }
     );
 
+    if (response.status === 429) {
+      return res.status(429).json({ error: "Rate limit reached — please wait a minute and try again." });
+    }
+
     const data = await response.json();
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
