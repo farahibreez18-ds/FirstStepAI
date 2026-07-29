@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
-import { extractTextFromFile, analyzeResume } from "../utils/resumeAnalyzer";
+import { extractTextFromFile } from "../utils/resumeAnalyzer";
 import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, AlertTriangle } from "lucide-react";
 
 function ResumeAnalyzer() {
@@ -12,7 +12,7 @@ function ResumeAnalyzer() {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
 
-  const handleFile = async (e) => {
+ const handleFile = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
 
@@ -26,14 +26,26 @@ function ResumeAnalyzer() {
       if (!text || text.trim().length < 30) {
         throw new Error("Couldn't read enough text from this file — it may be a scanned image rather than text.");
       }
-      const analysis = analyzeResume(text);
-      setResult(analysis);
+
+      const res = await fetch("/api/analyze-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText: text }),
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        throw new Error("The AI couldn't analyze this resume right now. Please try again.");
+      }
+
+      setResult(data);
     } catch (err) {
-      setError(err.message || "Something went wrong reading this file.");
+      setError(err.message || "Something went wrong analyzing this file.");
     } finally {
       setAnalyzing(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-white relative overflow-hidden">
@@ -89,33 +101,30 @@ function ResumeAnalyzer() {
     </div>
   </div>
 
-  <p className="text-[#8A93A6] text-sm mt-5">
-    {result.score >= 75 ? "Strong resume" : result.score >= 50 ? "Room to improve" : "Needs work"}
-  </p>
-  <p className="text-xs text-[#8A93A6] mt-2 font-data">{result.wordCount} words</p>
+ <p className="text-[#8A93A6] text-sm mt-2">{result.verdict}</p>
 </div>
 
             <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
-              <h3 className="font-display font-semibold text-[#F5F7FA] mb-4">Keyword Match</h3>
+              <h3 className="font-display font-semibold text-[#F5F7FA] mb-4">Strengths</h3>
               <div className="space-y-2 mb-5">
-                {result.matched.length > 0 ? (
-                  result.matched.map((kw) => (
-                    <div key={kw} className="flex items-center gap-2 text-sm text-[#F5F7FA] capitalize">
-                      <CheckCircle2 className="w-4 h-4 text-[#4C6FFF] shrink-0" /> {kw}
+                {result.strengths?.length > 0 ? (
+                  result.strengths.map((s, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm text-[#F5F7FA]">
+                      <CheckCircle2 className="w-4 h-4 text-[#4C6FFF] shrink-0 mt-0.5" /> {s}
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-[#8A93A6]">No common skill keywords detected.</p>
+                  <p className="text-sm text-[#8A93A6]">No strengths detected.</p>
                 )}
               </div>
-              {result.missing.length > 0 && (
+              {result.missingSkills?.length > 0 && (
                 <>
-                  <h4 className="text-xs font-data text-[#8A93A6] tracking-wide mb-2">MISSING</h4>
-                  <div className="space-y-2">
-                    {result.missing.map((kw) => (
-                      <div key={kw} className="flex items-center gap-2 text-sm text-[#8A93A6] capitalize">
-                        <AlertCircle className="w-4 h-4 text-[#F2B84B] shrink-0" /> {kw}
-                      </div>
+                  <h4 className="text-xs font-data text-[#8A93A6] tracking-wide mb-2">CONSIDER ADDING</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {result.missingSkills.map((kw) => (
+                      <span key={kw} className="flex items-center gap-1 text-xs text-[#F2B84B] bg-[#F2B84B]/10 px-2.5 py-1 rounded-full">
+                        <AlertCircle className="w-3 h-3" /> {kw}
+                      </span>
                     ))}
                   </div>
                 </>
