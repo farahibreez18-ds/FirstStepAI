@@ -1,6 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import { Plus, Trash2, Briefcase } from "lucide-react";
+import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { Plus, Trash2, Briefcase, Loader2 } from "lucide-react";
 
 const STATUS_COLORS = {
   Applied: "bg-[#4C6FFF]/10 text-[#4C6FFF]",
@@ -10,22 +22,42 @@ const STATUS_COLORS = {
 };
 
 function JobTracker() {
-  const [jobs, setJobs] = useState([
-    { id: 1, company: "Google", role: "SWE Intern", status: "Applied" },
-    { id: 2, company: "Stripe", role: "Frontend Engineer", status: "Interview" },
-  ]);
+  const { currentUser } = useAuth();
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ company: "", role: "", status: "Applied" });
 
-  const addJob = () => {
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const q = query(collection(db, "jobs"), where("userId", "==", currentUser.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const jobList = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      jobList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      setJobs(jobList);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  const addJob = async () => {
     if (!form.company.trim() || !form.role.trim()) return;
-    setJobs((prev) => [...prev, { ...form, id: Date.now() }]);
+    await addDoc(collection(db, "jobs"), {
+      ...form,
+      userId: currentUser.uid,
+      createdAt: Date.now(),
+    });
     setForm({ company: "", role: "", status: "Applied" });
   };
 
-  const removeJob = (id) => setJobs((prev) => prev.filter((j) => j.id !== id));
+  const removeJob = async (id) => {
+    await deleteDoc(doc(db, "jobs", id));
+  };
 
-  const updateStatus = (id, status) =>
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status } : j)));
+  const updateStatus = async (id, status) => {
+    await updateDoc(doc(db, "jobs", id), { status });
+  };
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-white">
@@ -35,7 +67,6 @@ function JobTracker() {
         <h1 className="font-display font-bold text-3xl text-[#F5F7FA]">Job Tracker</h1>
         <p className="text-[#8A93A6] mt-2">Keep track of your applications in one place.</p>
 
-        {/* Add form */}
         <div className="mt-8 bg-[#121A2E] border border-[#232D42] rounded-xl p-5 flex flex-col sm:flex-row gap-3">
           <input
             value={form.company}
@@ -66,14 +97,20 @@ function JobTracker() {
           </button>
         </div>
 
-        {/* List */}
         <div className="mt-6 space-y-3">
-          {jobs.length === 0 && (
+          {loading && (
+            <div className="flex items-center justify-center gap-2 text-[#8A93A6] py-10">
+              <Loader2 className="w-5 h-5 animate-spin" /> Loading your applications...
+            </div>
+          )}
+
+          {!loading && jobs.length === 0 && (
             <div className="text-center text-[#8A93A6] py-10">
               <Briefcase className="w-8 h-8 mx-auto mb-3 opacity-50" />
               No applications tracked yet.
             </div>
           )}
+
           {jobs.map((job) => (
             <div
               key={job.id}
