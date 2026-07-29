@@ -53,7 +53,10 @@ const handleSend = async () => {
       const data = await res.json();
       const feedbackText = data.feedback || "Thanks for your answer — let's move to the next question.";
 
-      setMessages((prev) => [...prev, { role: "ai", text: feedbackText }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: feedbackText, sampleAnswer: data.sampleAnswer },
+      ]);
       setAnalyses((prev) => [...prev, { wordCount: userAnswer.split(/\s+/).length }]);
     } catch (err) {
       setMessages((prev) => [...prev, { role: "ai", text: "Couldn't get AI feedback right now — moving to the next question." }]);
@@ -94,19 +97,28 @@ const handleSend = async () => {
         ) : (
           <>
             <div className="flex-1 bg-[#121A2E] border border-[#232D42] rounded-2xl p-5 overflow-y-auto space-y-4 max-h-[50vh]">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+             {messages.map((m, i) => (
+                <div key={i} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
                   <div
                     className={`max-w-[75%] rounded-xl px-4 py-2.5 text-sm ${
                       m.role === "user"
                         ? "bg-[#4C6FFF] text-white"
-                        : m.tone === "needs-work"
-                        ? "bg-[#0B1120] border border-[#F2B84B]/40 text-[#F5F7FA]"
                         : "bg-[#0B1120] border border-[#232D42] text-[#F5F7FA]"
                     }`}
                   >
                     {m.text}
                   </div>
+
+                  {m.sampleAnswer && (
+                    <details className="max-w-[85%] mt-1.5 group">
+                      <summary className="text-xs text-[#4C6FFF] cursor-pointer hover:text-[#3D5AE0] list-none flex items-center gap-1">
+                        <span className="group-open:rotate-90 transition-transform">▸</span> See a strong example answer
+                      </summary>
+                      <div className="mt-2 bg-[#121A2E] border border-[#4C6FFF]/30 rounded-lg px-4 py-3 text-sm text-[#8A93A6] italic">
+                        "{m.sampleAnswer}"
+                      </div>
+                    </details>
+                  )}
                 </div>
               ))}
               <div ref={bottomRef} />

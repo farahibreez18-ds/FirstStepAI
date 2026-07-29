@@ -13,7 +13,11 @@ export default async function handler(req, res) {
 Interview question: "${question}"
 Candidate's answer: "${answer}"
 
-Give short, specific feedback (2-3 sentences max) on this answer. Point out one genuine strength and one concrete way to improve. Keep the tone warm and constructive, like a mentor, not a critic. Do not use markdown formatting, just plain text.`;
+Respond with ONLY a valid JSON object (no markdown, no code fences, no extra text) in exactly this shape:
+{
+  "feedback": "2-3 sentences of warm, specific feedback on their answer. Point out one genuine strength and one concrete way to improve.",
+  "sampleAnswer": "A strong, realistic example answer to this exact question, written in first person as if the candidate were answering well. Keep it natural and concise, 3-5 sentences, not overly perfect or robotic."
+}`; 
 
   try {
     const response = await fetch(
@@ -30,14 +34,25 @@ Give short, specific feedback (2-3 sentences max) on this answer. Point out one 
       }
     );
 
-   const data = await response.json();
-    const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  const data = await response.json();
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-    if (!feedback) {
+    if (!rawText) {
       return res.status(500).json({ error: "No response from AI", debug: data });
     }
 
-    return res.status(200).json({ feedback });
+    let parsed;
+    try {
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      return res.status(200).json({ feedback: rawText, sampleAnswer: "" });
+    }
+
+    return res.status(200).json({
+      feedback: parsed.feedback || "Good effort on this answer.",
+      sampleAnswer: parsed.sampleAnswer || "",
+    });
   } catch (err) {
     return res.status(500).json({ error: "AI request failed", debug: err.message });
   }
