@@ -197,7 +197,7 @@ ${form.fullName}`;
                 <label className="block text-sm text-[#8A93A6] mb-1.5">Full Name *</label>
                 <input
                   name="fullName" value={form.fullName} onChange={handleChange}
-                  placeholder="e.g. Farah Ibreez Zameer"
+                  placeholder="e.g. Aslan Farah"
                   className="w-full bg-[#121A2E] border border-[#232D42] text-[#F5F7FA] placeholder-[#8A93A6] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C6FFF]"
                 />
               </div>
@@ -206,7 +206,7 @@ ${form.fullName}`;
                 <label className="block text-sm text-[#8A93A6] mb-1.5">Degree / Course</label>
                 <input
                   name="degree" value={form.degree} onChange={handleChange}
-                  placeholder="e.g. B.E. CSE – Data Science student"
+                  placeholder="e.g. B.E. Computer Science"
                   className="w-full bg-[#121A2E] border border-[#232D42] text-[#F5F7FA] placeholder-[#8A93A6] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C6FFF]"
                 />
               </div>
