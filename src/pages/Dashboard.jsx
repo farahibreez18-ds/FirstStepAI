@@ -25,10 +25,6 @@ const jobStats = [
 ];
 const maxJob = Math.max(...jobStats.map((j) => j.value));
 
-const quickStats = [
-  { label: "Applications", value: String(jobCount) },
-];
-
 const profileSteps = [
   { label: "Resume uploaded", done: true },
   { label: "First mock interview", done: true },
@@ -48,6 +44,11 @@ function Dashboard() {
     const unsubscribe = onSnapshot(q, (snapshot) => setJobCount(snapshot.size));
     return () => unsubscribe();
   }, [currentUser]);
+
+  const quickStats = [
+    { label: "Applications", value: String(jobCount) },
+  ];
+
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
   const score = 0.87;
@@ -64,7 +65,6 @@ function Dashboard() {
 
       <div className="max-w-6xl mx-auto px-6 py-12 relative z-10">
 
-        {/* Header row: welcome + inline stats */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
             <h1 className="font-display font-bold text-3xl text-[#F5F7FA]">
@@ -85,10 +85,8 @@ function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8 items-start">
 
-          {/* Main column */}
           <div className="lg:col-span-2 flex flex-col gap-5">
 
-            {/* Resume Analyzer — featured with texture */}
             <Link
               to="/resume"
               className="group relative bg-gradient-to-br from-[#121A2E] to-[#161F38] border border-[#4C6FFF]/40 hover:border-[#4C6FFF] rounded-2xl p-7 transition-all hover:-translate-y-1 overflow-hidden"
@@ -124,64 +122,60 @@ function Dashboard() {
               </div>
             </Link>
 
-           {/* Score gauge + secondary cards row — equal height, consistent layout */}
-<div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-stretch">
 
-  {/* Resume score — now vertical layout to match the other two */}
-  <div className="bg-[#121A2E] border border-[#232D42] rounded-xl p-6 flex flex-col justify-between">
-    <div className="flex items-center justify-between">
-      <span className="text-[10px] font-data text-[#8A93A6] tracking-wide">RESUME SCORE</span>
-      <svg width="44" height="44" viewBox="0 0 72 72" className="shrink-0">
-        <circle cx="36" cy="36" r={radius} fill="none" stroke="#232D42" strokeWidth="7" />
-        <circle
-          cx="36" cy="36" r={radius} fill="none"
-          stroke="#4C6FFF" strokeWidth="7"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - score)}
-          strokeLinecap="round"
-          transform="rotate(-90 36 36)"
-        />
-      </svg>
-    </div>
-    <div className="mt-4">
-      <div className="font-display font-bold text-2xl text-[#F5F7FA]">87<span className="text-sm text-[#8A93A6]">/100</span></div>
-      <p className="text-xs text-[#8A93A6] mt-1">Strong match</p>
-    </div>
-  </div>
+              <div className="bg-[#121A2E] border border-[#232D42] rounded-xl p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-data text-[#8A93A6] tracking-wide">RESUME SCORE</span>
+                  <svg width="44" height="44" viewBox="0 0 72 72" className="shrink-0">
+                    <circle cx="36" cy="36" r={radius} fill="none" stroke="#232D42" strokeWidth="7" />
+                    <circle
+                      cx="36" cy="36" r={radius} fill="none"
+                      stroke="#4C6FFF" strokeWidth="7"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={circumference * (1 - score)}
+                      strokeLinecap="round"
+                      transform="rotate(-90 36 36)"
+                    />
+                  </svg>
+                </div>
+                <div className="mt-4">
+                  <div className="font-display font-bold text-2xl text-[#F5F7FA]">87<span className="text-sm text-[#8A93A6]">/100</span></div>
+                  <p className="text-xs text-[#8A93A6] mt-1">Strong match</p>
+                </div>
+              </div>
 
-  {secondary.map((f) => {
-    const Icon = f.icon;
-    return (
-      <Link
-        key={f.path}
-        to={f.path}
-        className="group bg-[#121A2E] border border-[#232D42] rounded-xl p-6 transition-all hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between"
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = f.accent)}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#232D42")}
-      >
-        <div className="flex items-center justify-between">
-          <div
-            className="w-11 h-11 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: `${f.accent}1A`, border: `1px solid ${f.accent}40` }}
-          >
-            <Icon className="w-5 h-5" style={{ color: f.accent }} />
-          </div>
-          <ArrowUpRight
-            className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            style={{ color: f.accent }}
-          />
-        </div>
-        <div className="mt-4">
-          <h3 className="font-display font-semibold text-[#F5F7FA]">{f.title}</h3>
-          <p className="text-sm text-[#8A93A6] mt-1">{f.desc}</p>
-        </div>
-      </Link>
-    );
-  })}
-</div>
-            
+              {secondary.map((f) => {
+                const Icon = f.icon;
+                return (
+                  <Link
+                    key={f.path}
+                    to={f.path}
+                    className="group bg-[#121A2E] border border-[#232D42] rounded-xl p-6 transition-all hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between"
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = f.accent)}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#232D42")}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div
+                        className="w-11 h-11 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: `${f.accent}1A`, border: `1px solid ${f.accent}40` }}
+                      >
+                        <Icon className="w-5 h-5" style={{ color: f.accent }} />
+                      </div>
+                      <ArrowUpRight
+                        className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+                        style={{ color: f.accent }}
+                      />
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="font-display font-semibold text-[#F5F7FA]">{f.title}</h3>
+                      <p className="text-sm text-[#8A93A6] mt-1">{f.desc}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-            {/* Job Tracker with mini chart */}
             <Link
               to="/jobs"
               className="group bg-[#121A2E] border border-[#232D42] rounded-xl p-6 transition-all flex items-center justify-between gap-6 flex-wrap"
@@ -193,7 +187,7 @@ function Dashboard() {
                   <Briefcase className="w-5 h-5" style={{ color: "#22C55E" }} />
                 </div>
                 <h3 className="font-display font-semibold text-[#F5F7FA]">Job Tracker</h3>
-                <p className="text-sm text-[#8A93A6] mt-1">12 applications tracked</p>
+                <p className="text-sm text-[#8A93A6] mt-1">{jobCount} application{jobCount === 1 ? "" : "s"} tracked</p>
               </div>
 
               <div className="flex items-end gap-5">
@@ -210,10 +204,8 @@ function Dashboard() {
 
           </div>
 
-          {/* Sidebar */}
           <div className="flex flex-col gap-5">
 
-            {/* Recent Activity */}
             <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
               <h3 className="font-display font-semibold text-[#F5F7FA] mb-5">Recent Activity</h3>
               <div className="space-y-5">
@@ -231,7 +223,6 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Profile completeness */}
             <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-display font-semibold text-[#F5F7FA]">Profile Setup</h3>
