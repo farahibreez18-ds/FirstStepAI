@@ -30,15 +30,15 @@ Give short, specific feedback (2-3 sentences max) on this answer. Point out one 
       }
     );
 
-    const data = await response.json();
+   const data = await response.json();
     const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!feedback) {
-      return res.status(500).json({ error: "No response from AI" });
+      return res.status(500).json({ error: "No response from AI", debug: data });
     }
 
     return res.status(200).json({ feedback });
   } catch (err) {
-    return res.status(500).json({ error: "AI request failed" });
+    return res.status(500).json({ error: "AI request failed", debug: err.message });
   }
 }
