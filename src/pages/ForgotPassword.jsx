@@ -35,9 +35,12 @@ function ForgotPassword() {
             Enter your email and we'll send you a link to reset your password.
           </p>
 
-          {sent ? (
+         {sent ? (
             <div className="text-sm text-green-400 bg-green-950/30 border border-green-900 rounded-lg px-4 py-3">
               Check your inbox — we've sent a password reset link to {email}.
+              <span className="block text-green-400/70 text-xs mt-1.5">
+                Don't see it? Check your spam or junk folder too.
+              </span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
