@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Send, Mic, RotateCcw } from "lucide-react";
-import { analyzeAnswer, summarizeSession } from "../utils/interviewFeedback";
+import { useAuth } from "../context/AuthContext";
+import { logActivity } from "../utils/activityLog";
 
 const QUESTIONS = [
   "Tell me about yourself and your background.",
@@ -12,12 +13,15 @@ const QUESTIONS = [
 ];
 
 function MockInterview() {
+  const { currentUser } = useAuth();
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [qIndex, setQIndex] = useState(0);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [analyses, setAnalyses] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [answerCount, setAnswerCount] = useState(0);
+  const [totalWords, setTotalWords] = useState(0);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -28,13 +32,12 @@ function MockInterview() {
     setStarted(true);
     setFinished(false);
     setQIndex(0);
-    setAnalyses([]);
+    setAnswerCount(0);
+    setTotalWords(0);
     setMessages([{ role: "ai", text: QUESTIONS[0] }]);
   };
 
- const [sending, setSending] = useState(false);
-
-const handleSend = async () => {
+  const handleSend = async () => {
     if (!input.trim() || sending) return;
     const question = QUESTIONS[qIndex];
     const userAnswer = input;
@@ -43,6 +46,8 @@ const handleSend = async () => {
     setMessages((prev) => [...prev, { role: "user", text: userAnswer }]);
     setInput("");
     setSending(true);
+    setAnswerCount((prev) => prev + 1);
+    setTotalWords((prev) => prev + userAnswer.split(/\s+/).filter(Boolean).length);
 
     try {
       const res = await fetch("/api/interview-feedback", {
@@ -57,7 +62,6 @@ const handleSend = async () => {
         ...prev,
         { role: "ai", text: feedbackText, sampleAnswer: data.sampleAnswer },
       ]);
-      setAnalyses((prev) => [...prev, { wordCount: userAnswer.split(/\s+/).length }]);
     } catch (err) {
       setMessages((prev) => [...prev, { role: "ai", text: "Couldn't get AI feedback right now — moving to the next question." }]);
     } finally {
@@ -67,12 +71,12 @@ const handleSend = async () => {
         setQIndex(nextIndex);
       } else {
         setFinished(true);
+        logActivity(currentUser?.uid, "Completed a mock interview session");
       }
     }
   };
 
-
-  const summary = finished ? summarizeSession(analyses) : null;
+  const avgWords = answerCount > 0 ? Math.round(totalWords / answerCount) : 0;
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-white flex flex-col">
@@ -80,7 +84,7 @@ const handleSend = async () => {
 
       <div className="max-w-2xl mx-auto w-full px-6 py-10 flex-1 flex flex-col">
         <h1 className="font-display font-bold text-3xl text-[#F5F7FA]">Mock Interview</h1>
-        <p className="text-[#8A93A6] mt-2 mb-6">Practice with real, answer-based feedback — not canned responses.</p>
+        <p className="text-[#8A93A6] mt-2 mb-6">Practice with real, AI-powered feedback.</p>
 
         {!started ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-[#121A2E] border border-[#232D42] rounded-2xl p-10 text-center">
@@ -97,7 +101,7 @@ const handleSend = async () => {
         ) : (
           <>
             <div className="flex-1 bg-[#121A2E] border border-[#232D42] rounded-2xl p-5 overflow-y-auto space-y-4 max-h-[50vh]">
-             {messages.map((m, i) => (
+              {messages.map((m, i) => (
                 <div key={i} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
                   <div
                     className={`max-w-[75%] rounded-xl px-4 py-2.5 text-sm ${
@@ -124,26 +128,19 @@ const handleSend = async () => {
               <div ref={bottomRef} />
             </div>
 
-            {finished && summary && (
+            {finished && (
               <div className="mt-4 bg-[#121A2E] border border-[#4C6FFF]/40 rounded-2xl p-6">
                 <h3 className="font-display font-semibold text-[#F5F7FA] mb-3">Session Summary</h3>
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-2">
                   <div>
-                    <div className="font-data font-semibold text-xl text-[#F5F7FA]">{summary.goodCount}/{summary.total}</div>
-                    <div className="text-xs text-[#8A93A6]">Strong answers</div>
+                    <div className="font-data font-semibold text-xl text-[#F5F7FA]">{answerCount}/{QUESTIONS.length}</div>
+                    <div className="text-xs text-[#8A93A6]">Questions answered</div>
                   </div>
                   <div>
-                    <div className="font-data font-semibold text-xl text-[#F5F7FA]">{summary.avgWordCount}</div>
+                    <div className="font-data font-semibold text-xl text-[#F5F7FA]">{avgWords}</div>
                     <div className="text-xs text-[#8A93A6]">Avg. words/answer</div>
                   </div>
-                  <div>
-                    <div className="font-data font-semibold text-xl text-[#F5F7FA]">{summary.totalFillers}</div>
-                    <div className="text-xs text-[#8A93A6]">Filler words used</div>
-                  </div>
                 </div>
-                {summary.overallNotes.map((note, i) => (
-                  <p key={i} className="text-sm text-[#8A93A6] mb-2">{note}</p>
-                ))}
                 <button
                   onClick={start}
                   className="flex items-center gap-2 mt-3 text-sm text-[#4C6FFF] hover:text-[#3D5AE0]"
@@ -160,11 +157,13 @@ const handleSend = async () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder="Type your answer..."
-                  className="flex-1 bg-[#121A2E] border border-[#232D42] text-[#F5F7FA] placeholder-[#8A93A6] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C6FFF] transition"
+                  disabled={sending}
+                  className="flex-1 bg-[#121A2E] border border-[#232D42] text-[#F5F7FA] placeholder-[#8A93A6] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C6FFF] transition disabled:opacity-60"
                 />
                 <button
                   onClick={handleSend}
-                  className="bg-[#4C6FFF] hover:bg-[#3D5AE0] text-white p-3 rounded-lg transition"
+                  disabled={sending}
+                  className="bg-[#4C6FFF] hover:bg-[#3D5AE0] disabled:opacity-60 text-white p-3 rounded-lg transition"
                 >
                   <Send className="w-4 h-4" />
                 </button>

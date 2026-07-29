@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { logActivity } from "../utils/activityLog";
 import {
   collection,
   query,
@@ -48,6 +49,7 @@ function JobTracker() {
       userId: currentUser.uid,
       createdAt: Date.now(),
     });
+    logActivity(currentUser.uid, `Added application — ${form.company}, ${form.role}`);
     setForm({ company: "", role: "", status: "Applied" });
   };
 

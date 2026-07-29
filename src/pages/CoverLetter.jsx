@@ -2,11 +2,13 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import { Copy, Download, Sparkles, Check, Upload, Loader2 } from "lucide-react";
 import { parseResumeForCoverLetter } from "../utils/coverLetterParser";
+import { useAuth } from "../context/AuthContext";
+import { logActivity } from "../utils/activityLog";
 import jsPDF from "jspdf";
 import { Document, Packer, Paragraph, TextRun } from "docx";
-import { FileText, FileType } from "lucide-react";
 
 function CoverLetter() {
+  const { currentUser } = useAuth();
   const [form, setForm] = useState({
     fullName: "",
     degree: "",
@@ -23,12 +25,28 @@ function CoverLetter() {
   const [letter, setLetter] = useState("");
   const [copied, setCopied] = useState(false);
   const [parsing, setParsing] = useState(false);
-const [parseError, setParseError] = useState("");
-const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [parseError, setParseError] = useState("");
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const canGenerate = form.fullName && form.role && form.company;
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setParsing(true);
+    setParseError("");
+    try {
+      const parsed = await parseResumeForCoverLetter(file);
+      setForm((prev) => ({ ...prev, ...parsed }));
+    } catch (err) {
+      setParseError("Couldn't read that file — try filling in the details manually instead.");
+    } finally {
+      setParsing(false);
+    }
+  };
 
   const generateLetter = () => {
     const skillsList = form.skills
@@ -80,76 +98,61 @@ Sincerely,
 ${form.fullName}`;
 
     setLetter(`${header}\n\n${body}`);
+    logActivity(currentUser?.uid, `Generated a cover letter for ${form.company || "a role"}`);
   };
 
-  const handleResumeUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  setParsing(true);
-  setParseError("");
-  try {
-    const parsed = await parseResumeForCoverLetter(file);
-    setForm((prev) => ({ ...prev, ...parsed }));
-  } catch (err) {
-    setParseError("Couldn't read that file — try filling in the details manually instead.");
-  } finally {
-    setParsing(false);
-  }
-};
-
-const handleCopy = () => {
+  const handleCopy = () => {
     navigator.clipboard.writeText(letter);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
- const handleDownloadPDF = () => {
-  const doc = new jsPDF();
-  const marginLeft = 20;
-  const marginTop = 20;
-  const maxWidth = 170;
-  const lineHeight = 6;
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const marginLeft = 20;
+    const marginTop = 20;
+    const maxWidth = 170;
+    const lineHeight = 6;
 
-  doc.setFont("helvetica");
-  doc.setFontSize(11);
+    doc.setFont("helvetica");
+    doc.setFontSize(11);
 
-  const lines = doc.splitTextToSize(letter, maxWidth);
-  let y = marginTop;
+    const lines = doc.splitTextToSize(letter, maxWidth);
+    let y = marginTop;
 
-  lines.forEach((line) => {
-    if (y > 280) {
-      doc.addPage();
-      y = marginTop;
-    }
-    doc.text(line, marginLeft, y);
-    y += lineHeight;
-  });
+    lines.forEach((line) => {
+      if (y > 280) {
+        doc.addPage();
+        y = marginTop;
+      }
+      doc.text(line, marginLeft, y);
+      y += lineHeight;
+    });
 
-  doc.save(`Cover Letter - ${form.company || "application"}.pdf`);
-};
+    doc.save(`Cover Letter - ${form.company || "application"}.pdf`);
+  };
 
-const handleDownloadWord = async () => {
-  const paragraphs = letter.split("\n").map(
-    (line) =>
-      new Paragraph({
-        children: [new TextRun({ text: line, size: 22 })],
-        spacing: { after: 120 },
-      })
-  );
+  const handleDownloadWord = async () => {
+    const paragraphs = letter.split("\n").map(
+      (line) =>
+        new Paragraph({
+          children: [new TextRun({ text: line, size: 22 })],
+          spacing: { after: 120 },
+        })
+    );
 
-  const doc = new Document({
-    sections: [{ properties: {}, children: paragraphs }],
-  });
+    const doc = new Document({
+      sections: [{ properties: {}, children: paragraphs }],
+    });
 
-  const blob = await Packer.toBlob(doc);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Cover Letter - ${form.company || "application"}.docx`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Cover Letter - ${form.company || "application"}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-white relative overflow-hidden">
@@ -162,32 +165,32 @@ const handleDownloadWord = async () => {
 
         <div className="grid lg:grid-cols-2 gap-8 mt-8">
 
-          {/* Form */}
           <div className="space-y-5">
+
             <div className="border-2 border-dashed border-[#232D42] hover:border-[#4C6FFF] rounded-xl p-5 text-center transition-colors bg-[#121A2E]/50">
-  <label className="cursor-pointer flex flex-col items-center gap-2">
-    {parsing ? (
-      <Loader2 className="w-5 h-5 text-[#4C6FFF] animate-spin" />
-    ) : (
-      <Upload className="w-5 h-5 text-[#4C6FFF]" />
-    )}
-    <span className="text-sm text-[#F5F7FA] font-medium">
-      {parsing ? "Reading your resume..." : "Or upload your resume to auto-fill these details"}
-    </span>
-    <span className="text-xs text-[#8A93A6]">PDF or DOCX — you can edit anything after</span>
-    <input type="file" accept=".pdf,.docx" className="hidden" onChange={handleResumeUpload} disabled={parsing} />
-  </label>
-</div>
+              <label className="cursor-pointer flex flex-col items-center gap-2">
+                {parsing ? (
+                  <Loader2 className="w-5 h-5 text-[#4C6FFF] animate-spin" />
+                ) : (
+                  <Upload className="w-5 h-5 text-[#4C6FFF]" />
+                )}
+                <span className="text-sm text-[#F5F7FA] font-medium">
+                  {parsing ? "Reading your resume..." : "Or upload your resume to auto-fill these details"}
+                </span>
+                <span className="text-xs text-[#8A93A6]">PDF or DOCX — you can edit anything after</span>
+                <input type="file" accept=".pdf,.docx" className="hidden" onChange={handleResumeUpload} disabled={parsing} />
+              </label>
+            </div>
 
-{parseError && (
-  <p className="text-xs text-red-400">{parseError}</p>
-)}
+            {parseError && (
+              <p className="text-xs text-red-400">{parseError}</p>
+            )}
 
-<div className="flex items-center gap-3">
-  <div className="flex-1 h-px bg-[#232D42]"></div>
-  <span className="text-xs text-[#8A93A6]">OR FILL IN MANUALLY</span>
-  <div className="flex-1 h-px bg-[#232D42]"></div>
-</div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[#232D42]"></div>
+              <span className="text-xs text-[#8A93A6]">OR FILL IN MANUALLY</span>
+              <div className="flex-1 h-px bg-[#232D42]"></div>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
@@ -299,54 +302,53 @@ const handleDownloadWord = async () => {
             </button>
           </div>
 
-          {/* Preview */}
           <div className="bg-[#121A2E] border border-[#232D42] rounded-2xl p-6 relative h-fit">
             {letter ? (
               <>
-              <div className="flex gap-2 absolute top-4 right-4">
-  <button onClick={handleCopy} className="text-[#8A93A6] hover:text-[#F5F7FA] p-1.5" title="Copy">
-    {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-  </button>
+                <div className="flex gap-2 absolute top-4 right-4">
+                  <button onClick={handleCopy} className="text-[#8A93A6] hover:text-[#F5F7FA] p-1.5" title="Copy">
+                    {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
 
-  <div className="relative">
-    <button
-      onClick={() => setShowDownloadMenu((prev) => !prev)}
-      className="text-[#8A93A6] hover:text-[#F5F7FA] p-1.5"
-      title="Download"
-    >
-      <Download className="w-4 h-4" />
-    </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowDownloadMenu((prev) => !prev)}
+                      className="text-[#8A93A6] hover:text-[#F5F7FA] p-1.5"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
 
-    {showDownloadMenu && (
-      <>
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setShowDownloadMenu(false)}
-        ></div>
-        <div className="absolute right-0 top-9 z-20 bg-[#1A2338] border border-[#232D42] rounded-lg shadow-xl overflow-hidden w-36">
-          <button
-            onClick={() => {
-              handleDownloadWord();
-              setShowDownloadMenu(false);
-            }}
-            className="w-full text-left px-4 py-2.5 text-sm text-[#F5F7FA] hover:bg-[#232D42] transition-colors"
-          >
-            Word (.docx)
-          </button>
-          <button
-            onClick={() => {
-              handleDownloadPDF();
-              setShowDownloadMenu(false);
-            }}
-            className="w-full text-left px-4 py-2.5 text-sm text-[#F5F7FA] hover:bg-[#232D42] transition-colors"
-          >
-            PDF (.pdf)
-          </button>
-        </div>
-      </>
-    )}
-  </div>
-</div>
+                    {showDownloadMenu && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setShowDownloadMenu(false)}
+                        ></div>
+                        <div className="absolute right-0 top-9 z-20 bg-[#1A2338] border border-[#232D42] rounded-lg shadow-xl overflow-hidden w-36">
+                          <button
+                            onClick={() => {
+                              handleDownloadWord();
+                              setShowDownloadMenu(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-[#F5F7FA] hover:bg-[#232D42] transition-colors"
+                          >
+                            Word (.docx)
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleDownloadPDF();
+                              setShowDownloadMenu(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-[#F5F7FA] hover:bg-[#232D42] transition-colors"
+                          >
+                            PDF (.pdf)
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
                 <pre className="whitespace-pre-wrap text-sm text-[#F5F7FA] font-sans leading-relaxed">{letter}</pre>
               </>
             ) : (
