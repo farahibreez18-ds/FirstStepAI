@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 
 function Home() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+   <div className="min-h-screen bg-[#0B1120] text-white">
       <Navbar />
       <Hero />
       <FeatureMenu />

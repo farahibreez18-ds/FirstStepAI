@@ -5,11 +5,10 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
-import CareerCoach from "./pages/CareerCoach";
+import CoverLetter from "./pages/CoverLetter";
 import MockInterview from "./pages/MockInterview";
-import SkillRoadmap from "./pages/SkillRoadmap";
 import JobTracker from "./pages/JobTracker";
-import LearningHub from "./pages/LearningHub";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -17,13 +16,22 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/resume" element={<ResumeAnalyzer />} />
-      <Route path="/coach" element={<CareerCoach />} />
-      <Route path="/interview" element={<MockInterview />} />
-      <Route path="/roadmap" element={<SkillRoadmap />} />
-      <Route path="/jobs" element={<JobTracker />} />
-      <Route path="/learning" element={<LearningHub />} />
+
+      <Route path="/dashboard" element={
+        <ProtectedRoute><Dashboard /></ProtectedRoute>
+      } />
+      <Route path="/resume" element={
+        <ProtectedRoute><ResumeAnalyzer /></ProtectedRoute>
+      } />
+      <Route path="/cover-letter" element={
+        <ProtectedRoute><CoverLetter /></ProtectedRoute>
+      } />
+      <Route path="/interview" element={
+        <ProtectedRoute><MockInterview /></ProtectedRoute>
+      } />
+      <Route path="/jobs" element={
+        <ProtectedRoute><JobTracker /></ProtectedRoute>
+      } />
     </Routes>
   );
 }
