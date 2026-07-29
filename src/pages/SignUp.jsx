@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Eye, EyeOff, Mail, Lock, User, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -35,8 +35,9 @@ const SignUp = () => {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      navigate('/dashboard');
+     const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+await updateProfile(userCredential.user, { displayName: formData.name });
+navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
         setErrors({ general: 'An account with this email already exists.' });

@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { FileText, Mail, Mic, Briefcase, ArrowUpRight, Clock, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const secondary = [
   { title: "Cover Letter", desc: "Generate a tailored draft", icon: Mail, path: "/cover-letter", accent: "#8B7CF6" },
@@ -23,9 +26,7 @@ const jobStats = [
 const maxJob = Math.max(...jobStats.map((j) => j.value));
 
 const quickStats = [
-  { label: "Resume Score", value: "87/100" },
-  { label: "Applications", value: "12" },
-  { label: "Sessions", value: "4" },
+  { label: "Applications", value: String(jobCount) },
 ];
 
 const profileSteps = [
@@ -37,9 +38,16 @@ const profileSteps = [
 
 function Dashboard() {
   const { currentUser } = useAuth();
-  const displayName = currentUser?.displayName || currentUser?.email?.split("@")[0] || "there";
-  const firstName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+  const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email?.split("@")[0] || "there";
 
+  const [jobCount, setJobCount] = useState(0);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = query(collection(db, "jobs"), where("userId", "==", currentUser.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => setJobCount(snapshot.size));
+    return () => unsubscribe();
+  }, [currentUser]);
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
   const score = 0.87;
