@@ -9,6 +9,7 @@ import CoverLetter from "./pages/CoverLetter";
 import MockInterview from "./pages/MockInterview";
 import JobTracker from "./pages/JobTracker";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route path="/dashboard" element={
         <ProtectedRoute><Dashboard /></ProtectedRoute>
