@@ -8,6 +8,7 @@ function ResumeAnalyzer() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
@@ -27,12 +28,11 @@ function ResumeAnalyzer() {
         throw new Error("Couldn't read enough text from this file — it may be a scanned image rather than text.");
       }
 
-      const res = await fetch("/api/analyze-resume", {
+     const res = await fetch("/api/analyze-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: text }),
+        body: JSON.stringify({ resumeText: text, jobDescription }),
       });
-
       const data = await res.json();
       if (data.error) {
         throw new Error("The AI couldn't analyze this resume right now. Please try again.");
@@ -63,7 +63,20 @@ function ResumeAnalyzer() {
           </span>
           <span className="text-xs text-[#8A93A6]">Max 5MB</span>
           <input type="file" accept=".pdf,.docx" className="hidden" onChange={handleFile} />
+       <div className="mt-8">
+          <label className="block text-sm text-[#8A93A6] mb-2">
+            Paste a job description <span className="text-[#4C6FFF]">(optional — get a match score for this specific role)</span>
+          </label>
+          <textarea
+            rows={4}
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the job posting here to see how well your resume matches this specific role..."
+            className="w-full bg-[#121A2E] border border-[#232D42] text-[#F5F7FA] placeholder-[#8A93A6] rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C6FFF]"
+          />
+        </div>
         </label>
+        
 
         {analyzing && (
           <div className="flex items-center gap-3 justify-center mt-8 text-[#8A93A6]">
